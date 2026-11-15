@@ -6,28 +6,8 @@ api: [5.0.0]
 load: STARTUP
 author: PocketMine Team
 description: Helps develop and distribute PocketMine-MP plugins
-website: https://github.com/PocketMine/DevTools
-commands:
- makeplugin:
-  description: Creates a Phar plugin from one in source code form
-  usage: "/makeplugin <pluginName>"
-  permission: devtools.command.makeplugin
- checkperm:
-  description: Checks a permission value for the current sender, or a player
-  usage: "/checkperm <node> [playerName]"
-  permission: "devtools.command.checkperm;devtools.command.checkperm.other"
- listperms:
-  description: Lists all the permission nodes set on the executor, or a player
-  usage: "/listperms [playerName]"
-  permission: "devtools.command.listperms.self;devtools.command.listperms.other"
- handlers:
-  description: Lists all event handlers currently associated with an event
-  usage: "/handlers <event>"
-  permission: devtools.command.handlers
- handlersbyplugin:
-  description: Lists all event handlers registered by a given plugin
-  usage: "/handlersbyplugin <pluginName>"
-  permission: devtools.command.handlersbyplugin
+website: https://github.com/luxorigin/DevTools
+
 permissions:
  devtools.command.makeplugin:
   default: op

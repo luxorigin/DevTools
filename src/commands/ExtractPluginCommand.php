@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace DevTools\commands;
 
 use DevTools\DevTools;
+use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\plugin\PharPluginLoader;
@@ -39,40 +40,37 @@ use function str_replace;
 use function trim;
 use const DIRECTORY_SEPARATOR;
 
-class ExtractPluginCommand extends DevToolsCommand{
-
-	public function __construct(DevTools $plugin){
-		parent::__construct("extractplugin", $plugin);
+final class ExtractPluginCommand extends Command
+{
+	public function __construct(protected DevTools $plugin)
+	{
+		parent::__construct(strtolower("extractplugin"), "Extracts the source code from a Phar plugin");
 		$this->setUsage("/extractplugin <pluginName>");
-		$this->setDescription("Extracts the source code from a Phar plugin");
 		$this->setPermission("devtools.command.extractplugin");
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
-		if(!$this->getOwningPlugin()->isEnabled()){
-			return false;
-		}
-
-		if(count($args) === 0){
+	public function execute(CommandSender $sender, string $commandLabel, array $args): void
+	{
+		if (count($args) === 0) {
 			throw new InvalidCommandSyntaxException();
 		}
 
 		$pluginName = trim(implode(" ", $args));
-		if($pluginName === "" or !(($plugin = Server::getInstance()->getPluginManager()->getPlugin($pluginName)) instanceof Plugin)){
+		if ($pluginName === "" or !(($plugin = Server::getInstance()->getPluginManager()->getPlugin($pluginName)) instanceof Plugin)) {
 			$sender->sendMessage(TextFormat::RED . "Invalid plugin name, check the name case.");
-			return true;
+			return;
 		}
 		$description = $plugin->getDescription();
 
-		if(!($plugin->getPluginLoader() instanceof PharPluginLoader)){
+		if (!($plugin->getPluginLoader() instanceof PharPluginLoader)) {
 			$sender->sendMessage(TextFormat::RED . "Plugin " . $description->getName() . " is not in Phar structure.");
-			return true;
+			return;
 		}
 
-		$folderPath = $this->getOwningPlugin()->getDataFolder() . DIRECTORY_SEPARATOR . $description->getName() . "_v" . $description->getVersion() . "/";
-		if(file_exists($folderPath)){
+		$folderPath = $this->plugin->getDataFolder() . DIRECTORY_SEPARATOR . $description->getName() . "_v" . $description->getVersion() . "/";
+		if (file_exists($folderPath)) {
 			$sender->sendMessage("Plugin already exists, overwriting...");
-		}else{
+		} else {
 			@mkdir($folderPath);
 		}
 
@@ -81,12 +79,11 @@ class ExtractPluginCommand extends DevToolsCommand{
 		$file->setAccessible(true);
 		$pharPath = str_replace("\\", "/", rtrim($file->getValue($plugin), "\\/"));
 
-		foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($pharPath)) as $fInfo){
+		foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($pharPath)) as $fInfo) {
 			$path = $fInfo->getPathname();
-			@mkdir(dirname($folderPath . str_replace($pharPath, "", $path)), 0755, true);
+			@mkdir(dirname($folderPath . str_replace($pharPath, "", $path)), 0755,);
 			file_put_contents($folderPath . str_replace($pharPath, "", $path), file_get_contents($path));
 		}
 		$sender->sendMessage("Source plugin " . $description->getName() . " v" . $description->getVersion() . " has been created on " . $folderPath);
-		return true;
 	}
 }
